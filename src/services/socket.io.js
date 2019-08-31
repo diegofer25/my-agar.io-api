@@ -2,8 +2,6 @@ export default class {
   constructor (io, socketIoRedis) {
     this.io = io;
     this.socketIoRedis = socketIoRedis;
-    this.rooms = [];
-    this.players = [];
   }
 
   connect (redisConfig) {
@@ -15,9 +13,9 @@ export default class {
 
   handlerPlayersConnection() {
     this.io.on('connection', (socket) => {
-      this.players.push(socket.id);
+      this.io.emit('addPlayerStatistic', socket.id);
       socket.on('disconnecting', () => {
-        this.players = this.players.filter(p => p !== socket.id);
+        this.io.emit('removePlayerStatistic', socket.id);
       });
     });
   }

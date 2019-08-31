@@ -10,7 +10,7 @@ import RedisService from './services/redis';
 import SocketIoService from './services/socket.io';
 
 const redisConfig = {
-  host: process.env.REDIS_HOST || undefined,
+  host: process.env.REDIS_HOST || 'localhost',
   port: process.env.REDIS_PORT || undefined,
   password: process.env.REDIS_PASSWORD || undefined
 };
@@ -35,26 +35,33 @@ export default class {
   }
 
   async initializeServices() {
-    this.services.db = await mongoDbConnection(mongodb);
+    const db = await mongoDbConnection(mongodb);
 
-    this.services.redis = await new RedisService(redis).connect(redisConfig);
+    const redisService = await new RedisService(redis).connect(redisConfig);
 
-    this.services.socket = new SocketIoService(socketIo(5000), socketIoRedis).connect(redisConfig);
+    const socket = new SocketIoService(socketIo(5000), socketIoRedis).connect(redisConfig, db);
+
+    this.services = {
+      redis: redisService,
+      db,
+      socket
+    };
   }
 
   async serverHandler (request, response) {
     const { req, res } = await this.prepareRequestResponse(request, response);
 
-    if (req.path.includes('/api')) {
+    if (req.path.includes('/api/')) {
       try {
         const file = req.path.split('/')[2];
         const entry = req.path.split('/')[3];
 
-        const module = await import(`./api/${file}`);
+        const module = await import(`./api/routes/${file}`);
 
         const api = module[req.method][entry];
         api(req, res, this.services);
       } catch (e) {
+        console.log(e.message);
         res.sendStatus(404);
       }
     } else if (req.path === '/' && req.method === 'GET') {

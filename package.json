@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec babel-node index.js",
+    "dev": "npm run kill-port && nodemon --inspect -w src --exec 'babel-node index.js'",
+    "kill-port": "kill-port --port 5000",
     "start": "babel-node ./index.js"
   },
   "keywords": [
@@ -21,6 +22,7 @@
     "@babel/preset-env": "^7.5.5",
     "babel-eslint": "^10.0.3",
     "eslint": "^6.2.2",
+    "kill-port": "^1.5.1",
     "nodemon": "^1.19.1"
   },
   "dependencies": {
