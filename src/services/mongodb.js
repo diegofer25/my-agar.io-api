@@ -1,6 +1,6 @@
 export default ({ MongoClient }) => {
   return new Promise((resolve, reject) => {
-    const stringConnection = process.env.STRING_CONNECTION || 'mongodb://localhost:27017/purrinha';
+    const stringConnection = process.env.STRING_CONNECTION || 'mongodb://localhost:27017/webgame';
     MongoClient.connect(stringConnection, { useNewUrlParser: true, useUnifiedTopology: true }, function(err, client) {
       if (err) {
         reject(err);

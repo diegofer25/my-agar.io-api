@@ -65,7 +65,7 @@ export default class {
         res.sendStatus(404);
       }
     } else if (req.path === '/' && req.method === 'GET') {
-      res.end('Purrinha API is ON');
+      res.end('Web Game API is ON');
     } else {
       res.sendStatus(404);
     }

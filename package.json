@@ -1,5 +1,5 @@
 {
-  "name": "purrinha-server",
+  "name": "web-game-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,9 +8,6 @@
     "kill-port": "kill-port --port 5000",
     "start": "babel-node ./index.js"
   },
-  "keywords": [
-    "purrinha"
-  ],
   "author": "Diego Lamarão",
   "license": "ISC",
   "devDependencies": {
