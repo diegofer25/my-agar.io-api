@@ -8,6 +8,7 @@ import socketIoRedis from 'socket.io-redis';
 import mongoDbConnection from './services/mongodb';
 import RedisService from './services/redis';
 import SocketIoService from './services/socket.io';
+import GameService from './services/game';
 
 const redisConfig = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -41,10 +42,13 @@ export default class {
 
     const socket = new SocketIoService(socketIo(5000), socketIoRedis).connect(redisConfig, db);
 
+    const game = new GameService(db, redis, socket).start();
+
     this.services = {
       redis: redisService,
       db,
-      socket
+      socket,
+      game
     };
   }
 

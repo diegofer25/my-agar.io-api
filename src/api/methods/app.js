@@ -1,8 +1,8 @@
 export const getStatistics = async (req, res, { socket }) => {
 
   try {
-    const playersCount = Object.keys(socket.io.sockets.sockets).length;
-    const roomsCount = socket.io.sockets.rooms.length;
+    const playersCount = Object.keys(socket.sockets.sockets).length;
+    const roomsCount = socket.sockets.rooms.length;
 
     res.json({ playersCount, roomsCount });
 
