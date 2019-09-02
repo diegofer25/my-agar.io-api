@@ -15,6 +15,16 @@ export default class GameService {
       this.socket.emit('addPlayerStatistic', socket.id);
       this.createPlayer(socket.id);
 
+      socket.on('player-move', ({ id, move }, confirmation) => {
+        this.players = this.players.map(player => {
+          if (player.id === id) {
+            player.position = move;
+            confirmation();
+          }
+          return player;
+        });
+      });
+
       socket.on('disconnecting', () => {
         this.removePlayer(socket.id);
         this.socket.emit('removePlayerStatistic', socket.id);
@@ -30,7 +40,8 @@ export default class GameService {
     this.players.push({
       id,
       position: [0, 0],
-      length: 10
+      length: 10,
+      speed: 5
     });
     this.socket.to(this.room).emit('updatePlayers', this.players);
   }
