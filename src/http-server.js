@@ -42,7 +42,7 @@ export default class {
 
     const socket = new SocketIoService(socketIo(5000), socketIoRedis).connect(redisConfig, db);
 
-    const game = new GameService(db, redis, socket).start();
+    const game = new GameService(1, db, redis, socket).start();
 
     this.services = {
       redis: redisService,
