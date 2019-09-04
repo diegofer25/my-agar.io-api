@@ -25,12 +25,11 @@ export default class GameService {
       this.socket.emit('addPlayerStatistic', socket.id);
       this.createPlayer(socket.id);
 
-      socket.on('player-move', ({ id, position }, confirmation) => {
+      socket.on('player-move', (direction) => {
         this.players = this.players.map(player => {
-          if (player.id === id) {
+          if (player.id === socket.id) {
             if (player.new) player.new = false;
-            player.move(position);
-            confirmation();
+            player.move(direction);
           }
           return player;
         });
@@ -44,7 +43,7 @@ export default class GameService {
 
     setInterval(() => {
       this.socket.to(this.configs.room).emit('gameUpdate', {
-        players: this.players
+        players: this.players.map(p => p.toClient)
       });
     }, this.configs.loopTime);
     return this;
@@ -53,9 +52,9 @@ export default class GameService {
   createPlayer (id) {
     this.players.push(new Player({
       id,
-      position: [500, 500],
-      length: 12,
-      speed: 5
+      position: [0, 0],
+      mass: 100,
+      speed: 2
     }));
     this.socket.to(this.configs.room).emit('updatePlayers', this.players);
   }
