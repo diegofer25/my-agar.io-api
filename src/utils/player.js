@@ -1,47 +1,70 @@
 import Vector2d from 'victor';
 
 export default class Player {
-  constructor ({ id, position, mass, speed }) {
+  constructor ({ id, position, mass }) {
     this.id = id;
     this.position = new Vector2d(...position);
     this.mass = mass;
-    this.speed = { max: speed * 2, mid: speed, min: speed/2 };
     this.color = `hsl(${Math.random()*360},60%,50%)`;
     this.new = true;
     this.live = true;
   }
 
-  move (direction) {
-    const directionVector = Vector2d.fromArray(direction);
-    const { speed, position, radius } = this;
-
-    var { x, y } = position;
-
-    if (directionVector.x - radius > x) {
-      this.position.addX({ x: speed.mid, y: 0 });
-    } else if (directionVector.x + radius < x - (radius * 2)) {
-      this.position.subtractX({ x: speed.mid, y: 0 });
+  move ({ x, y, /* percent */ }) {
+    const dif = 2000 - this.diameter ;
+    // const speed = this.maxSpeed * percent;
+    if (x && this.position.x < dif) { // - this.maxSpeed
+      this.position.addX({ x: this.maxSpeed, y: 0 });
+    } else if (this.position.x > - dif) {
+      this.position.subtractX({ x: this.maxSpeed, y: 0 });
     }
 
-    if (directionVector.y - radius > y) {
-      this.position.addY({ x: 0, y: speed.mid });
-    } else if (directionVector.y + radius < y - (radius * 2)) {
-      this.position.subtractY({ x: 0, y: speed.mid });
+    if (y && this.position.y < dif) {
+      this.position.addY({ x: 0, y: this.maxSpeed });
+    } else if (this.position.y > -dif) {
+      this.position.subtractY({ x: 0, y: this.maxSpeed });
     }
+  }
+
+  eat (mass) {
+    // TweenMax.to(this.mass, 1, { mass });
+    this.mass = mass;
+  }
+
+  die () {
+    this.mass = 0;
+    this.live = false;
+  }
+
+  get maxSpeed () {
+    return 30 / (1 + Math.log(this.radius));
   }
 
   get radius () {
     return Math.sqrt(this.mass);
   }
 
+  get diameter () {
+    return this.radius * 2;
+  }
+
   get scaleVision () {
     return 1 / Math.log(Math.sqrt(this.radius) / 4 + 2);
   }
 
+  get force () {
+    return this.mass * this.speed.mid;
+  }
+
   get toClient () {
-    return { ...this,
+    return {
+      id: this.id,
+      position: this.position.toObject(),
       radius: this.radius,
-      scaleVision: this.scaleVision
+      scaleVision: this.scaleVision,
+      color: this.color,
+      live: this.live,
+      mass: this.mass
     };
   }
 }
