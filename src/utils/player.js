@@ -1,5 +1,5 @@
 import Vector2d from 'victor';
-
+import { TweenMax } from 'gsap';
 export default class Player {
   constructor ({ id, position, mass }) {
     this.id = id;
@@ -10,25 +10,25 @@ export default class Player {
     this.live = true;
   }
 
-  move ({ x, y, /* percent */ }) {
-    const dif = 2000 - this.diameter ;
+  move ({ x, y, /* percent */ }, { height, width }) {
+    const difWidth = (width / 2) - this.diameter;
+    const difHeight = (height / 2) - this.diameter ;
     // const speed = this.maxSpeed * percent;
-    if (x && this.position.x < dif) { // - this.maxSpeed
+    if (x && this.position.x < difWidth) { // - this.maxSpeed
       this.position.addX({ x: this.maxSpeed, y: 0 });
-    } else if (this.position.x > - dif) {
+    } else if (!x && this.position.x > - difWidth) {
       this.position.subtractX({ x: this.maxSpeed, y: 0 });
     }
 
-    if (y && this.position.y < dif) {
+    if (y && this.position.y < difHeight) {
       this.position.addY({ x: 0, y: this.maxSpeed });
-    } else if (this.position.y > -dif) {
+    } else if (!y && this.position.y > -difHeight) {
       this.position.subtractY({ x: 0, y: this.maxSpeed });
     }
   }
 
   eat (mass) {
-    // TweenMax.to(this.mass, 1, { mass });
-    this.mass = mass;
+    TweenMax.to(this, 1, { mass: this.mass + mass });
   }
 
   die () {

@@ -30,7 +30,7 @@ export default class GameService {
         this.players = this.players.map(player => {
           if (player.id === socket.id) {
             if (player.new) player.new = false;
-            player.move(direction);
+            player.move(direction, this.configs.mapSize);
           }
           return player;
         });
@@ -79,7 +79,7 @@ export default class GameService {
             this.players[i].mass > this.players[y].mass && // player mass gretter than collider
             this.players[i].position.distance(this.players[y].position) - ((this.players[i].radius * 2) - this.players[y].radius * 2) <= 0 // collider inside the player
           ) {
-            this.players[i].eat( this.players[y].mass);
+            this.players[i].eat(this.players[y].mass);
             this.players[y].die();
           }
         }
@@ -89,7 +89,7 @@ export default class GameService {
             this.players[i].mass > this.foods[x].mass && // player mass gretter than collider
             this.players[i].position.distance(this.foods[x].position) - ((this.players[i].radius * 2) - this.foods[x].radius * 2) <= 0 // collider inside the player
           ) {
-            this.players[i].eat( this.players[x].mass);
+            this.players[i].eat(this.foods[x].mass);
             this.foods.splice(x, 1);
             x--;
           }
@@ -102,8 +102,8 @@ export default class GameService {
     if (this.foods.length < 400) {
       this.foods.push(new Player({
         position: [
-          Math.floor(Math.random() * this.configs.mapSize.width) - (this.configs.mapSize.width / 2),
-          Math.floor(Math.random() * this.configs.mapSize.height) - (this.configs.mapSize.height / 2)
+          Math.floor(Math.random() * (this.configs.mapSize.width - 10)) - ((this.configs.mapSize.width / 2) - 10),
+          Math.floor(Math.random() * (this.configs.mapSize.height - 10)) - ((this.configs.mapSize.height / 2) - 10)
         ],
         mass: 10
       }).toClient);
