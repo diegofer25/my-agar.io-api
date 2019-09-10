@@ -23,7 +23,7 @@ export default class {
   }
 
   async start (processId) {
-    await this.initializeServices();
+    this.services = await this.initializeServices();
 
     const serverHandler = this.serverHandler.bind(this);
     this.server = http.createServer(serverHandler);
@@ -44,7 +44,7 @@ export default class {
 
     const game = new GameService(1, db, redis, socket).start();
 
-    this.services = {
+    return {
       redis: redisService,
       db,
       socket,

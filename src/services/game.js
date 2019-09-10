@@ -9,7 +9,7 @@ export default class GameService {
     this.foods = [];
     this.configs = {
       id,
-      loopTime: 33.3,
+      loopTime: 1000 / 60,
       room: `room-${id}`,
       mapSize: {
         width: 4000,
@@ -43,7 +43,7 @@ export default class GameService {
     });
 
     setInterval(() => {
-      this.checkCollisons(this.players.length);
+      this.checkCollisons(this.players, this.foods);
       this.generateFood();
       this.socket.to(this.configs.room).emit('gameUpdate', {
         players: this.players.map(p => p.toClient),
@@ -55,8 +55,12 @@ export default class GameService {
 
   createPlayer (id) {
     this.players.push(new Player({
+      type: 'player',
       id,
-      position: [0, 0],
+      position: [
+        Math.floor(Math.random() * (this.configs.mapSize.width - 100)) - ((this.configs.mapSize.width / 2) - 100),
+        Math.floor(Math.random() * (this.configs.mapSize.height - 100)) - ((this.configs.mapSize.height / 2) - 100)
+      ],
       mass: 100
     }));
     this.socket.to(this.configs.room).emit('updatePlayers', this.players);
@@ -68,39 +72,37 @@ export default class GameService {
     this.socket.emit('removePlayerStatistic', id);
   }
 
-  checkCollisons (playersLength) {
-    for (let i = 0; i < playersLength; i++) {
-      if (this.players[i].live) {
-        // check collision with players
-        for (let y = 0; y < playersLength; y++) {
-          if (
-            this.players[y].live &&
-            this.players[i].id !== this.players[y].id && // check if is a enemy or the iteration player
-            this.players[i].mass > this.players[y].mass && // player mass gretter than collider
-            this.players[i].position.distance(this.players[y].position) - ((this.players[i].radius * 2) - this.players[y].radius * 2) <= 0 // collider inside the player
-          ) {
-            this.players[i].eat(this.players[y].mass);
-            this.players[y].die();
-          }
+  checkCollisons (players, foods) {
+    players.forEach((player, index, enemies) => {
+      enemies.forEach(enemy => {
+        if (
+          player.live && enemy.live &&
+          player.id !== enemy.id && // check if is a enemy or the iteration player
+          player.mass > enemy.mass && // player mass gretter than collider
+          player.position.distance(enemy.position) - ((player.diameter) - enemy.diameter) <= 0 // collider inside the player
+        ) {
+          player.chew(enemy.mass);
+          enemy.die();
         }
-        // check collision with foods
-        for (let x = 0; x < this.foods.length; x++) {
-          if (
-            this.players[i].mass > this.foods[x].mass && // player mass gretter than collider
-            this.players[i].position.distance(this.foods[x].position) - ((this.players[i].radius * 2) - this.foods[x].radius * 2) <= 0 // collider inside the player
-          ) {
-            this.players[i].eat(this.foods[x].mass);
-            this.foods.splice(x, 1);
-            x--;
-          }
+      });
+
+      this.foods = foods.filter(food => {
+        if (
+          player.mass > food.mass && // player mass gretter than collider
+          player.position.distance(food.position) - ((player.radius * 2) - food.radius * 2) <= 0 // collider inside the player
+        ) {
+          player.eat(food.mass);
+          return false;
         }
-      }
-    }
+        return true;
+      });
+    });
   }
 
   generateFood () {
-    if (this.foods.length < 400) {
+    if (this.foods.length < 800) {
       this.foods.push(new Player({
+        type: 'food',
         position: [
           Math.floor(Math.random() * (this.configs.mapSize.width - 10)) - ((this.configs.mapSize.width / 2) - 10),
           Math.floor(Math.random() * (this.configs.mapSize.height - 10)) - ((this.configs.mapSize.height / 2) - 10)

@@ -1,5 +1,5 @@
 import Vector2d from 'victor';
-import { TweenMax } from 'gsap';
+import { TweenMax, Power0 } from 'gsap';
 export default class Player {
   constructor ({ id, position, mass }) {
     this.id = id;
@@ -8,6 +8,10 @@ export default class Player {
     this.color = `hsl(${Math.random()*360},60%,50%)`;
     this.new = true;
     this.live = true;
+    this.eating = false;
+    this.toEat = [];
+    this.lossMassTimeDelay = 500;
+    this.lastScore = 100;
   }
 
   move ({ x, y, /* percent */ }, { height, width }) {
@@ -25,19 +29,44 @@ export default class Player {
     } else if (!y && this.position.y > -difHeight) {
       this.position.subtractY({ x: 0, y: this.maxSpeed });
     }
+    if (this.mass > 101 && this.lossMassTimeDelay <= 0) {
+      this.mass -= this.mass / 100;
+      this.lossMassTimeDelay = 500;
+    } else {
+      this.lossMassTimeDelay -= 1;
+    }
   }
 
   eat (mass) {
-    TweenMax.to(this, 1, { mass: this.mass + mass });
+    this.mass += mass;
+  }
+
+  chew (mass) {
+    if (mass) {
+      this.toEat.unshift(mass);
+    }
+    if (this.toEat.length === 1) {
+      TweenMax.to(this, 0.5, {
+        ease: Power0.none,
+        mass: this.mass + this.toEat[this.toEat.length - 1],
+        onComplete: (() => {
+          this.toEat.pop();
+          if (this.toEat.length) {
+            this.chew();
+          }
+        }).bind(this)
+      });
+    }
   }
 
   die () {
-    this.mass = 0;
+    this.lastScore = this.score;
+    TweenMax.to(this, 1, { mass: 0 });
     this.live = false;
   }
 
   get maxSpeed () {
-    return 30 / (1 + Math.log(this.radius));
+    return 15 / (1 + Math.log(this.radius));
   }
 
   get radius () {
@@ -53,7 +82,11 @@ export default class Player {
   }
 
   get force () {
-    return this.mass * this.speed.mid;
+    return this.mass * this.maxSpeed;
+  }
+
+  get score () {
+    return parseInt(this.mass);
   }
 
   get toClient () {
@@ -64,7 +97,9 @@ export default class Player {
       scaleVision: this.scaleVision,
       color: this.color,
       live: this.live,
-      mass: this.mass
+      mass: this.mass,
+      score: this.score,
+      lastScore: this.lastScore
     };
   }
 }
