@@ -1,5 +1,6 @@
-import { getStatistics } from '../methods/app';
+import { getStatistics, playAgain } from '../methods/app';
 
 export const GET = {
-  statistics: getStatistics
+  statistics: getStatistics,
+  ['play-again']: playAgain
 };

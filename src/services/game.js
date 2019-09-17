@@ -43,11 +43,11 @@ export default class GameService {
     });
 
     setInterval(() => {
-      this.checkCollisons(this.players, this.foods);
+      this.players = this.checkCollisons();
       this.generateFood();
       this.socket.to(this.configs.room).emit('gameUpdate', {
         players: this.players.map(p => p.toClient),
-        foods: this.foods
+        foods: this.foods.map(f => f.toClient)
       });
     }, this.configs.loopTime);
     return this;
@@ -72,31 +72,43 @@ export default class GameService {
     this.socket.emit('removePlayerStatistic', id);
   }
 
-  checkCollisons (players, foods) {
-    players.forEach((player, index, enemies) => {
-      enemies.forEach(enemy => {
-        if (
-          player.live && enemy.live &&
-          player.id !== enemy.id && // check if is a enemy or the iteration player
-          player.mass > enemy.mass && // player mass gretter than collider
-          player.position.distance(enemy.position) - ((player.diameter) - enemy.diameter) <= 0 // collider inside the player
-        ) {
-          player.chew(enemy.mass);
-          enemy.die();
-        }
-      });
+  checkCollisons () {
+    return this.players.map(player => {
 
-      this.foods = foods.filter(food => {
-        if (
-          player.mass > food.mass && // player mass gretter than collider
-          player.position.distance(food.position) - ((player.radius * 2) - food.radius * 2) <= 0 // collider inside the player
-        ) {
-          player.eat(food.mass);
-          return false;
-        }
-        return true;
-      });
+      player = this.checkFoodColision(player);
+
+      return this.checkPlayersColision(player);
     });
+  }
+
+  checkPlayersColision (player) {
+    this.players = this.players.map(enemy => {
+      if (
+        player.live && enemy.live &&
+        player.id !== enemy.id && // check if is a enemy or the iteration player
+        player.mass > enemy.mass && // player mass gretter than collider
+        player.position.distance(enemy.position) - ((player.diameter) - enemy.diameter) <= 10 // collider inside the player
+      ) {
+        player.chew(enemy.mass);
+        enemy.kill();
+      }
+      return enemy;
+    });
+    return player;
+  }
+
+  checkFoodColision (player) {
+    this.foods = this.foods.filter(food => {
+      if (
+        player.mass > food.mass && // player mass gretter than collider
+        player.position.distance(food.position) - ((player.diameter) - food.diameter) <= 10 // collider inside the player
+      ) {
+        player.eat(food.mass);
+        return false;
+      }
+      return true;
+    });
+    return player;
   }
 
   generateFood () {
@@ -104,11 +116,26 @@ export default class GameService {
       this.foods.push(new Player({
         type: 'food',
         position: [
-          Math.floor(Math.random() * (this.configs.mapSize.width - 10)) - ((this.configs.mapSize.width / 2) - 10),
-          Math.floor(Math.random() * (this.configs.mapSize.height - 10)) - ((this.configs.mapSize.height / 2) - 10)
+          Math.floor(Math.random() * (this.configs.mapSize.width - 50)) - ((this.configs.mapSize.width / 2) - 50),
+          Math.floor(Math.random() * (this.configs.mapSize.height - 50)) - ((this.configs.mapSize.height / 2) - 50)
         ],
         mass: 10
-      }).toClient);
+      }));
     }
+  }
+
+  getPlayer (id) {
+    return this.players.find(player => player.id === id) || {};
+  }
+
+  revivePlayer (id) {
+    this.players = this.players.map(player => {
+      if (player.id === id) {
+        const { width, height } = this.configs.mapSize;
+        player.randomizePosition(width, height);
+        player.revive();
+      }
+      return player;
+    });
   }
 }

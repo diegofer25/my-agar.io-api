@@ -45,12 +45,11 @@ export default class Player {
     if (mass) {
       this.toEat.unshift(mass);
     }
-    if (this.toEat.length === 1) {
+    if (this.toEat.length > 0) {
       TweenMax.to(this, 0.5, {
         ease: Power0.none,
-        mass: this.mass + this.toEat[this.toEat.length - 1],
+        mass: this.mass + this.toEat.pop(),
         onComplete: (() => {
-          this.toEat.pop();
           if (this.toEat.length) {
             this.chew();
           }
@@ -59,10 +58,20 @@ export default class Player {
     }
   }
 
-  die () {
+  kill () {
     this.lastScore = this.score;
     TweenMax.to(this, 1, { mass: 0 });
     this.live = false;
+  }
+
+  revive () {
+    TweenMax.to(this, 1, { mass: 100 });
+    this.live = true;
+  }
+
+  randomizePosition (mapX, mapY) {
+    this.position.x = Math.floor(Math.random() * (mapX - 100)) - ((mapX / 2) - 100);
+    this.position.y = Math.floor(Math.random() * (mapY - 100)) - ((mapY / 2) - 100);
   }
 
   get maxSpeed () {
