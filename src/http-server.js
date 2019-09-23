@@ -23,7 +23,7 @@ export default class {
   }
 
   async start (processId) {
-    this.services = await this.initializeServices();
+    this.services = await this.initializeServices(processId);
 
     const serverHandler = this.serverHandler.bind(this);
     this.server = http.createServer(serverHandler);
@@ -35,14 +35,14 @@ export default class {
     });
   }
 
-  async initializeServices() {
+  async initializeServices(processId) {
     const db = await mongoDbConnection(mongodb);
 
     const redisService = await new RedisService(redis).connect(redisConfig);
 
     const socket = new SocketIoService(socketIo(5000), socketIoRedis).connect(redisConfig, db);
 
-    const game = new GameService(1, db, redis, socket).start();
+    const game = new GameService(processId, db, redis, socket).start();
 
     return {
       redis: redisService,

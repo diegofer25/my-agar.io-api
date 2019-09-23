@@ -1,11 +1,12 @@
 import Vector2d from 'victor';
 import { TweenMax, Power0 } from 'gsap';
 export default class Player {
-  constructor ({ id, position, mass }) {
+  constructor ({ id, name, color, position, mass }) {
     this.id = id;
+    this.name = name;
     this.position = new Vector2d(...position);
     this.mass = mass;
-    this.color = `hsl(${Math.random()*360},60%,50%)`;
+    this.color = color || `hsl(${Math.random()*360},60%,50%)`;
     this.new = true;
     this.live = true;
     this.eating = false;
@@ -101,6 +102,7 @@ export default class Player {
   get toClient () {
     return {
       id: this.id,
+      name: this.name,
       position: this.position.toObject(),
       radius: this.radius,
       scaleVision: this.scaleVision,

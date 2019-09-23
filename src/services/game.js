@@ -20,11 +20,11 @@ export default class GameService {
 
   start () {
     this.socket.on('connection', (socket) => {
-      console.log(`${socket.id} connected`);
+      console.log(`${socket.id} connected at ${this.configs.room}`);
 
       socket.join(this.configs.room);
       this.socket.emit('addPlayerStatistic', socket.id);
-      this.createPlayer(socket.id);
+      this.createPlayer(socket.id, socket.handshake.query);
 
       socket.on('player-move', (direction) => {
         this.players = this.players.map(player => {
@@ -53,10 +53,11 @@ export default class GameService {
     return this;
   }
 
-  createPlayer (id) {
+  createPlayer (id, { name, color }) {
     this.players.push(new Player({
-      type: 'player',
       id,
+      name,
+      color,
       position: [
         Math.floor(Math.random() * (this.configs.mapSize.width - 100)) - ((this.configs.mapSize.width / 2) - 100),
         Math.floor(Math.random() * (this.configs.mapSize.height - 100)) - ((this.configs.mapSize.height / 2) - 100)
@@ -114,7 +115,6 @@ export default class GameService {
   generateFood () {
     if (this.foods.length < 800) {
       this.foods.push(new Player({
-        type: 'food',
         position: [
           Math.floor(Math.random() * (this.configs.mapSize.width - 50)) - ((this.configs.mapSize.width / 2) - 50),
           Math.floor(Math.random() * (this.configs.mapSize.height - 50)) - ((this.configs.mapSize.height / 2) - 50)
